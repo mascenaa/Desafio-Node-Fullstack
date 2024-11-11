@@ -16,8 +16,14 @@ const config: Config = {
 				alert: '#F79E1B',
 				alert_support: '#9B671C',
 				error: '#FF0000',
-				error_support: '#3B0000'
-			}
+				error_support: '#461527'
+			},
+			surfaces: {
+				surface: '#10141D',
+				surface_two: '#F7F5F2',
+				overlay: '#10141D'
+			},
+
   		},
   		fontSize: {
   			'5xl': '54px',
