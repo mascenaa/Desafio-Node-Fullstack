@@ -6,19 +6,28 @@ import {
      SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
 import CNPJmask from "@/lib/input-mask";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { z } from "zod";
 
-interface RegisterLocalProps {
-     localName: string;
-     localNickname: string;
-     type: string;
-     cnpj: string;
-     cep: string;
-     city: string;
-     state: string;
-     street: string;
-     number: string;
-     complement: string;
-};
+const RegisterLocalSchema = z.object({
+     localName: z.string().min(1, "Nome do local é obrigatório"),
+     localNickname: z.string().optional(),
+     type: z.string().min(1, "Tipo é obrigatório"),
+     cnpj: z.string().min(18, "CNPJ inválido"),  // considerando o formato com máscara
+     cep: z.string().length(8, "CEP inválido"),
+     city: z.string().min(1, "Cidade é obrigatória"),
+     state: z.string().min(1, "Estado é obrigatório"),
+     street: z.string().min(1, "Logradouro é obrigatório"),
+     number: z.string().optional(),
+     complement: z.string().optional(),
+     email: z.string().email("Email inválido"),
+     phone: z.string().optional(),
+     entradas: z.array(z.string()).optional(),
+     catracas: z.array(z.string()).optional(),
+});
+
+type RegisterLocalProps = z.infer<typeof RegisterLocalSchema>;
 
 export default function RegisterLocal() {
 
@@ -32,8 +41,17 @@ export default function RegisterLocal() {
           state: "",
           street: "",
           number: "",
-          complement: ""
+          complement: "",
+          email: "",
+          phone: "",
+          entradas: [],
+          catracas: []
      });
+
+     const [errors, setErrors] = useState<Partial<RegisterLocalProps>>({});
+
+     const [entradaTemp, setEntradaTemp] = useState("");
+     const [catracaTemp, setCatracaTemp] = useState("");
 
      async function getInfoByCEP(cep: string) {
           try {
@@ -62,15 +80,49 @@ export default function RegisterLocal() {
           }
      }
 
+     const handleAddEntrada = () => {
+          if (entradaTemp) {
+               setFormData((prevData) => ({
+                    ...prevData,
+                    entradas: [...prevData.entradas, entradaTemp]
+               }));
+               setEntradaTemp("");
+          }
+     };
+
+     const handleAddCatraca = () => {
+          if (catracaTemp) {
+               setFormData((prevData) => ({
+                    ...prevData,
+                    catracas: [...prevData.catracas, catracaTemp]
+               }));
+               setCatracaTemp("");
+          }
+     };
+
+     const handleSubmit = () => {
+          const result = RegisterLocalSchema.safeParse(formData);
+          if (!result.success) {
+               const fieldErrors = result.error.format();
+               setErrors(Object.fromEntries(
+                    Object
+                         .entries(fieldErrors)
+                         .map(([key, value]) => [key, value[0]])));
+               return;
+          }
+
+          console.log("Dados válidos:", formData);
+     };
+
      return (
           <section className="p-5 md:p-20">
-               <div>
-                    <h1>Adicionar novo local</h1>
-                    <p>
+               <div className="mb-5">
+                    <h1 className="text-2xl md:text-3xl">Adicionar novo local</h1>
+                    <p className="text-sm md:text-base">
                          Campos obrigatórios
                     </p>
                </div>
-               <div className="bg-surfaces-surface p-5">
+               <div className="bg-surfaces-surface p-10 rounded-[20px]">
                     <div className="w-full">
                          <h3>Informações Básicas</h3>
                          <div className="flex w-full justify-between gap-10 my-2">
@@ -81,12 +133,13 @@ export default function RegisterLocal() {
                                         value={formData.localName}
                                         onChange={(e) =>
                                              setFormData({
+                                                  ...formData,
                                                   localName: e.target.value
                                              })
                                         }
                                    />
+                                   {errors.localName && <p className="text-red-500">{errors.localName}</p>}
                               </div>
-                              ...formData,
                               <div className="w-full">
                                    <p>Apelido</p>
                                    <Input
@@ -104,17 +157,31 @@ export default function RegisterLocal() {
                          <div className="flex w-full justify-between gap-10 my-2">
                               <div className="w-full">
                                    <p>Selecione um tipo</p>
-                                   <Select>
+                                   <Select
+                                        onValueChange={(value) =>
+                                             setFormData({
+                                                  ...formData,
+                                                  type: value
+                                             })
+                                        }
+                                   >
                                         <SelectTrigger className="w-full">
                                              <SelectValue
                                                   placeholder="Selecione um tipo" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                             <SelectItem value="estadio">
+                                             <SelectItem value="stadium">
                                                   Estádio
+                                             </SelectItem>
+                                             <SelectItem value="show">
+                                                  Casa de show
+                                             </SelectItem>
+                                             <SelectItem value="theater">
+                                                  Auditórios e Teatros
                                              </SelectItem>
                                         </SelectContent>
                                    </Select>
+                                   {errors.type && <p className="text-red-500">{errors.type}</p>}
                               </div>
                               <div className="w-full">
                                    <p>CNPj</p>
@@ -129,6 +196,7 @@ export default function RegisterLocal() {
                                         maxLength={18}
                                         placeholder="ex.: 00.000.000/0000-00"
                                    />
+                                   {errors.cnpj && <p className="text-red-500">{errors.cnpj}</p>}
                               </div>
                          </div>
                     </div>
@@ -152,6 +220,7 @@ export default function RegisterLocal() {
                                         }}
                                         maxLength={8}
                                    />
+                                   {errors.cep && <p className="text-red-500">{errors.cep}</p>}
                               </div>
                               <div className="w-full">
                                    <p>Cidade</p>
@@ -165,6 +234,7 @@ export default function RegisterLocal() {
                                              })
                                         }
                                    />
+                                   {errors.city && <p className="text-red-500">{errors.city}</p>}
                               </div>
                               <div className="w-full">
                                    <p>Estado</p>
@@ -178,6 +248,7 @@ export default function RegisterLocal() {
                                              })
                                         }
                                    />
+                                   {errors.state && <p className="text-red-500">{errors.state}</p>}
                               </div>
                          </div>
                          <div className="flex w-full justify-between gap-10 my-2">
@@ -193,6 +264,7 @@ export default function RegisterLocal() {
                                              })
                                         }
                                    />
+                                   {errors.street && <p className="text-red-500">{errors.street}</p>}
                               </div>
                               <div className="w-full">
                                    <p>Número</p>
@@ -224,6 +296,107 @@ export default function RegisterLocal() {
                               </div>
                          </div>
                     </div>
+                    <hr className="my-5 opacity-15" />
+                    <div className="w-full">
+                         <h3>Contato</h3>
+                         <div className="flex w-full justify-between gap-10 my-2">
+                              <div className="w-full">
+                                   <p>Email</p>
+                                   <Input
+                                        value={formData.email}
+                                        onChange={(e) =>
+                                             setFormData({
+                                                  ...formData,
+                                                  email: e.target.value
+                                             })
+                                        }
+                                        placeholder="Informe o email" />
+                                   {errors.email && <p className="text-red-500">{errors.email}</p>}
+                              </div>
+                              <div className="w-full">
+                                   <p>Telefone</p>
+                                   <Input
+                                        value={formData.phone}
+                                        onChange={(e) =>
+                                             setFormData({
+                                                  ...formData,
+                                                  phone: e.target.value
+                                             })
+                                        }
+                                        placeholder="Informe o telefone" />
+                              </div>
+                         </div>
+                    </div>
+                    <hr className="my-5 opacity-15" />
+                    <div className="w-full">
+                         <h3>
+                              Cadastro de entradas e catracas
+                         </h3>
+                         <div className="flex w-full justify-between gap-10 my-2">
+                              <div className="w-full">
+                                   <p>Entradas</p>
+                                   <div className="flex">
+                                        <Input
+                                             placeholder="Informe a quantidade 
+                                             de entradas"
+                                             value={entradaTemp}
+                                             onChange={(e) =>
+                                                  setEntradaTemp(e.target.value)
+                                             }
+                                        />
+                                        <Button
+                                             onClick={handleAddEntrada}
+                                             className="bg-[#051D41] text-white text-md">
+                                             +
+                                        </Button>
+                                   </div>
+                                   <ul className="flex flex-wrap gap-2 my-5">
+                                        {formData?.entradas?.map((entrada, index) => (
+                                             <li key={index}>
+                                                  <Badge className="bg-sky-400 
+                                                  p-2 rounded-[6px]">
+                                                       {entrada}
+                                                  </Badge>
+                                             </li>
+                                        ))}
+                                   </ul>
+                              </div>
+                              <div className="w-full">
+                                   <p>Catracas</p>
+                                   <div className="flex">
+                                        <Input
+                                             placeholder="Informe a quantidade 
+                                             de catracas"
+                                             value={catracaTemp}
+                                             onChange={(e) =>
+                                                  setCatracaTemp(e.target.value)
+                                             }
+                                        />
+                                        <Button
+                                             onClick={handleAddCatraca}
+                                             className="bg-[#051D41] text-white text-md">
+                                             +
+                                        </Button>
+                                   </div>
+                                   <ul className="flex flex-wrap gap-2 my-5">
+                                        {formData.catracas.map((catraca, index) => (
+                                             <li key={index}>
+                                                  <Badge className="bg-sky-400 
+                                                  p-2 rounded-[6px]">
+                                                       {catraca}
+                                                  </Badge>
+                                             </li>
+                                        ))}
+                                   </ul>
+                              </div>
+                         </div>
+                    </div>
+                    <hr className="my-5 opacity-15" />
+                    <div className="flex justify-end gap-5">
+                         <Button className="border rounded-[6px]">Cancelar</Button>
+                         <Button onClick={handleSubmit} className="bg-white text-black rounded-[6px]">Cadastrar</Button>
+                    </div>
+
                </div>
           </section>
      );
