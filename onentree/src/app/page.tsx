@@ -9,7 +9,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { EllipsisVertical, Map, TicketCheck } from "lucide-react";
 import {
-  Table, TableBody, TableCaption, TableCell,
+  Table, TableBody, TableCell,
   TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
 
@@ -89,21 +89,34 @@ export default function Home() {
           </TableBody>
         </Table>
         <Table className="bg-surfaces-surface rounded-xl p-5">
-          <TableCaption>A list of your recent invoices.</TableCaption>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[100px]">Invoice</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Method</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
+              <TableHead className="w-[100px]">Estádio</TableHead>
+              <TableHead>Logradouro</TableHead>
+              <TableHead>Entradas</TableHead>
+              <TableHead className="text-right"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell className="font-medium">INV001</TableCell>
-              <TableCell>Paid</TableCell>
-              <TableCell>Credit Card</TableCell>
-              <TableCell className="text-right">$250.00</TableCell>
+              <TableCell className="font-bold">Morumbis</TableCell>
+              <TableCell>Av Giovanni Gronchi</TableCell>
+              <TableCell>C, D, E</TableCell>
+              <TableCell className="text-right">
+                <Button>
+                  <EllipsisVertical />
+                </Button>
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell className="font-bold">Morumbis</TableCell>
+              <TableCell>Av Giovanni Gronchi</TableCell>
+              <TableCell>C, D, E</TableCell>
+              <TableCell className="text-right">
+                <Button>
+                  <EllipsisVertical />
+                </Button>
+              </TableCell>
             </TableRow>
           </TableBody>
         </Table>

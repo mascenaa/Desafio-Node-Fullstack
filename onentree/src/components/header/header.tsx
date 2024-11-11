@@ -18,13 +18,16 @@ export default function Header() {
                          md:gap-5 md:items-center  md:bg-transparent`}>
                          <ul className="flex flex-col 
                          items-center gap-5 md:flex-row md:gap-5">
-                              <li>
+                              <li className="transition-all hover:underline
+                               ease-in delay-75 hover:font-medium">
                                    <Link href="/">Home</Link>
                               </li>
-                              <li>
+                              <li className="transition-all hover:underline
+                               ease-in delay-75 hover:font-medium">
                                    <Link href="/eventos">Eventos</Link>
                               </li>
-                              <li>
+                              <li className="transition-all hover:underline
+                               ease-in delay-75 hover:font-medium">
                                    <Link href="/locais">Locais</Link>
                               </li>
                          </ul>
