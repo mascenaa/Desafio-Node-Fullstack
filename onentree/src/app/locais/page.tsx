@@ -1,3 +1,4 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -31,7 +32,10 @@ export default function Locais() {
                                    placeholder="Pesquise por nome do local" />
                          </div>
 
-                         <Button className="bg-white text-black rounded-[8px] 
+                         <Button onClick={() => {
+
+                              window.location.href = "/locais/register";
+                         }} className="bg-white text-black rounded-[8px] 
                               hover:bg-slate-300 hover:underline 
                               transition-all ease-in ">
                               Adicionar local
