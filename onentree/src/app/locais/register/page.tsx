@@ -1,14 +1,15 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
      Select, SelectContent,
      SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select";
-import CNPJmask from "@/lib/input-mask";
+import { CNPJmask, LimparCEP, PhoneMask } from "@/lib/input-mask";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
+import { toast } from "sonner";
 
 const RegisterLocalSchema = z.object({
      localName: z.string().min(1, "Nome do local é obrigatório"),
@@ -75,7 +76,11 @@ export default function RegisterLocal() {
                }));
           } catch (error) {
                if (error instanceof Error) {
-                    console.error(error.message);
+                    toast.error("Erro", {
+                         className: "bg-[#461527]",
+                         description: "Erro ao buscar informações do CEP",
+                         duration: 5000
+                    });
                }
           }
      }
@@ -84,7 +89,7 @@ export default function RegisterLocal() {
           if (entradaTemp) {
                setFormData((prevData) => ({
                     ...prevData,
-                    entradas: [...prevData.entradas, entradaTemp]
+                    entradas: [...(prevData.entradas || []), entradaTemp]
                }));
                setEntradaTemp("");
           }
@@ -94,7 +99,7 @@ export default function RegisterLocal() {
           if (catracaTemp) {
                setFormData((prevData) => ({
                     ...prevData,
-                    catracas: [...prevData.catracas, catracaTemp]
+                    catracas: [...(prevData.catracas || []), catracaTemp]
                }));
                setCatracaTemp("");
           }
@@ -102,15 +107,24 @@ export default function RegisterLocal() {
 
      const handleSubmit = () => {
           const result = RegisterLocalSchema.safeParse(formData);
+
+
           if (!result.success) {
                const fieldErrors = result.error.format();
+
                setErrors(Object.fromEntries(
                     Object
                          .entries(fieldErrors)
-                         .map(([key, value]) => [key, value[0]])));
+                         .map(([key, value]) => [key, Array.isArray(value) ? value[0] : (value as { _errors: string[] })._errors[0]])));
                return;
           }
 
+          toast.success("Sucesso", {
+               className: "bg-[#2F3B28]",
+               description: "Local cadastrado com sucesso",
+               duration: 5000
+          }
+          );
           console.log("Dados válidos:", formData);
      };
 
@@ -129,6 +143,7 @@ export default function RegisterLocal() {
                               <div className="w-full">
                                    <p>Nome do Local*</p>
                                    <Input
+                                        required
                                         placeholder="Informe o nome do local"
                                         value={formData.localName}
                                         onChange={(e) =>
@@ -137,8 +152,9 @@ export default function RegisterLocal() {
                                                   localName: e.target.value
                                              })
                                         }
+                                        className={errors.localName ? "border-[1px] border-red-500" : ""}
                                    />
-                                   {errors.localName && <p className="text-red-500">{errors.localName}</p>}
+                                   {errors.localName && <p className="text-red-500 text-right text-sm mt-[0.25rem]">{errors.localName}</p>}
                               </div>
                               <div className="w-full">
                                    <p>Apelido</p>
@@ -151,6 +167,7 @@ export default function RegisterLocal() {
                                                   localNickname: e.target.value
                                              })
                                         }
+                                        className={errors.localNickname ? "border-[1px] border-red-500" : ""}
                                    />
                               </div>
                          </div>
@@ -158,6 +175,7 @@ export default function RegisterLocal() {
                               <div className="w-full">
                                    <p>Selecione um tipo</p>
                                    <Select
+                                        required
                                         onValueChange={(value) =>
                                              setFormData({
                                                   ...formData,
@@ -165,7 +183,7 @@ export default function RegisterLocal() {
                                              })
                                         }
                                    >
-                                        <SelectTrigger className="w-full">
+                                        <SelectTrigger className={`w-full ${errors.type ? "border-[1px] border-red-500" : ""}`}>
                                              <SelectValue
                                                   placeholder="Selecione um tipo" />
                                         </SelectTrigger>
@@ -181,7 +199,7 @@ export default function RegisterLocal() {
                                              </SelectItem>
                                         </SelectContent>
                                    </Select>
-                                   {errors.type && <p className="text-red-500">{errors.type}</p>}
+                                   {errors.type && <p className="text-red-500 text-right text-sm mt-[0.25rem]">{errors.type}</p>}
                               </div>
                               <div className="w-full">
                                    <p>CNPj</p>
@@ -195,8 +213,9 @@ export default function RegisterLocal() {
                                         value={CNPJmask(formData.cnpj)}
                                         maxLength={18}
                                         placeholder="ex.: 00.000.000/0000-00"
+                                        className={errors.cnpj ? "border-[1px] border-red-500" : ""}
                                    />
-                                   {errors.cnpj && <p className="text-red-500">{errors.cnpj}</p>}
+                                   {errors.cnpj && <p className="text-red-500 text-right text-sm mt-[0.25rem]">{errors.cnpj}</p>}
                               </div>
                          </div>
                     </div>
@@ -207,8 +226,9 @@ export default function RegisterLocal() {
                               <div className="w-full">
                                    <p>CEP</p>
                                    <Input
+                                        required
                                         placeholder="Informe o CEP local"
-                                        value={formData.cep}
+                                        value={LimparCEP(formData.cep)}
                                         onChange={(e) => {
                                              if (e.target.value.length >= 8) {
                                                   getInfoByCEP(e.target.value);
@@ -219,12 +239,14 @@ export default function RegisterLocal() {
                                              });
                                         }}
                                         maxLength={8}
+                                        className={errors.cep ? "border-[1px] border-red-500" : ""}
                                    />
-                                   {errors.cep && <p className="text-red-500">{errors.cep}</p>}
+                                   {errors.cep && <p className="text-red-500 text-right text-sm mt-[0.25rem]">{errors.cep}</p>}
                               </div>
                               <div className="w-full">
                                    <p>Cidade</p>
                                    <Input
+                                        required
                                         placeholder="Informe a cidade"
                                         value={formData.city}
                                         onChange={(e) =>
@@ -233,12 +255,14 @@ export default function RegisterLocal() {
                                                   city: e.target.value
                                              })
                                         }
+                                        className={errors.city ? "border-[1px] border-red-500" : ""}
                                    />
-                                   {errors.city && <p className="text-red-500">{errors.city}</p>}
+                                   {errors.city && <p className="text-red-500 text-right text-sm mt-[0.25rem]">{errors.city}</p>}
                               </div>
                               <div className="w-full">
                                    <p>Estado</p>
                                    <Input
+                                        required
                                         placeholder="Informe o estado"
                                         value={formData.state}
                                         onChange={(e) =>
@@ -247,14 +271,16 @@ export default function RegisterLocal() {
                                                   state: e.target.value
                                              })
                                         }
+                                        className={errors.state ? "border-[1px] border-red-500" : ""}
                                    />
-                                   {errors.state && <p className="text-red-500">{errors.state}</p>}
+                                   {errors.state && <p className="text-red-500 text-right text-sm mt-[0.25rem]">{errors.state}</p>}
                               </div>
                          </div>
                          <div className="flex w-full justify-between gap-10 my-2">
                               <div className="w-full">
                                    <p>Logradouro*</p>
                                    <Input
+                                        required
                                         placeholder="Informe o logradouro"
                                         value={formData.street}
                                         onChange={(e) =>
@@ -263,8 +289,9 @@ export default function RegisterLocal() {
                                                   street: e.target.value
                                              })
                                         }
+                                        className={errors.street ? "border-[1px] border-red-500" : ""}
                                    />
-                                   {errors.street && <p className="text-red-500">{errors.street}</p>}
+                                   {errors.street && <p className="text-red-500 text-right text-sm mt-[0.25rem]">{errors.street}</p>}
                               </div>
                               <div className="w-full">
                                    <p>Número</p>
@@ -277,6 +304,7 @@ export default function RegisterLocal() {
                                                   number: e.target.value
                                              })
                                         }
+                                        className={errors.number ? "border-[1px] border-red-500" : ""}
                                    />
                               </div>
                          </div>
@@ -292,6 +320,7 @@ export default function RegisterLocal() {
                                                   complement: e.target.value
                                              })
                                         }
+                                        className={errors.complement ? "border-[1px] border-red-500" : ""}
                                    />
                               </div>
                          </div>
@@ -303,6 +332,7 @@ export default function RegisterLocal() {
                               <div className="w-full">
                                    <p>Email</p>
                                    <Input
+                                        required
                                         value={formData.email}
                                         onChange={(e) =>
                                              setFormData({
@@ -310,20 +340,24 @@ export default function RegisterLocal() {
                                                   email: e.target.value
                                              })
                                         }
-                                        placeholder="Informe o email" />
-                                   {errors.email && <p className="text-red-500">{errors.email}</p>}
+                                        placeholder="Informe o email"
+                                        className={errors.email ? "border-[1px] border-red-500" : ""}
+                                   />
+                                   {errors.email && <p className="text-red-500 text-right text-sm mt-[0.25rem]">{errors.email}</p>}
                               </div>
                               <div className="w-full">
                                    <p>Telefone</p>
                                    <Input
-                                        value={formData.phone}
                                         onChange={(e) =>
                                              setFormData({
                                                   ...formData,
                                                   phone: e.target.value
                                              })
                                         }
-                                        placeholder="Informe o telefone" />
+                                        value={PhoneMask(formData.phone || "")}
+                                        placeholder="Informe o telefone"
+                                        className={errors.phone ? "border-[1px] border-red-500" : ""}
+                                   />
                               </div>
                          </div>
                     </div>
@@ -343,6 +377,7 @@ export default function RegisterLocal() {
                                              onChange={(e) =>
                                                   setEntradaTemp(e.target.value)
                                              }
+                                             className={errors.entradas ? "border-[1px] border-red-500" : ""}
                                         />
                                         <Button
                                              onClick={handleAddEntrada}
@@ -371,6 +406,7 @@ export default function RegisterLocal() {
                                              onChange={(e) =>
                                                   setCatracaTemp(e.target.value)
                                              }
+                                             className={errors.catracas ? "border-[1px] border-red-500" : ""}
                                         />
                                         <Button
                                              onClick={handleAddCatraca}
@@ -379,7 +415,7 @@ export default function RegisterLocal() {
                                         </Button>
                                    </div>
                                    <ul className="flex flex-wrap gap-2 my-5">
-                                        {formData.catracas.map((catraca, index) => (
+                                        {formData.catracas?.map((catraca, index) => (
                                              <li key={index}>
                                                   <Badge className="bg-sky-400 
                                                   p-2 rounded-[6px]">
@@ -394,7 +430,7 @@ export default function RegisterLocal() {
                     <hr className="my-5 opacity-15" />
                     <div className="flex justify-end gap-5">
                          <Button className="border rounded-[6px]">Cancelar</Button>
-                         <Button onClick={handleSubmit} className="bg-white text-black rounded-[6px]">Cadastrar</Button>
+                         <Button onClick={() => handleSubmit()} className="bg-white text-black rounded-[6px]">Cadastrar</Button>
                     </div>
 
                </div>
