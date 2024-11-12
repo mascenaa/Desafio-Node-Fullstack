@@ -8,7 +8,7 @@ datasource db {
 }
 
 model Places {
-  id         Int    @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   name       String
   nickname   String
   type       String
@@ -23,4 +23,16 @@ model Places {
   phone      String
   entries    String
   entrance   String
+  Events     Events[]
+}
+
+model Events {
+  id    Int      @id @default(autoincrement())
+  name  String
+  type  String
+  date  DateTime
+  hour  String
+  place Places   @relation(fields: [id], references: [id])
+  email String
+  phone String
 }
