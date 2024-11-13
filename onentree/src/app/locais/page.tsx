@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,7 +13,51 @@ import {
 import { EllipsisVertical, Search } from "lucide-react";
 
 
+interface Local {
+     address: string;
+     cep: string;
+     city: string;
+     cnpj: string;
+     complement: string;
+     email: string;
+     entrance: string;
+     entries: string;
+     id: number;
+     name: string;
+     nickname: string;
+     number: string;
+     phone: string;
+     state: string;
+     type: string;
+}
+
 export default function Locais() {
+
+     const [locais, setLocais] = useState<Local[]>([]);
+     const [page, setPage] = useState(1);
+
+     console.log(locais);
+
+     useEffect(() => {
+          function getLocais() {
+               fetch(`http://localhost:8080/places/${page}`, {
+                    method: "GET",
+                    headers: {
+                         "Content-Type": "application/json"
+                    }
+               })
+                    .then((response) => response.json())
+                    .then((data) => {
+                         setLocais(data);
+                    })
+                    .catch((error) => {
+                         console.error("Error:", error);
+                    });
+          }
+
+          getLocais();
+     }, []);
+
      return (
           <section className="p-5 md:p-20">
                <div>
@@ -64,25 +109,33 @@ export default function Locais() {
                                    </TableRow>
                               </TableHeader>
                               <TableBody>
-                                   <TableRow>
-                                        <TableCell>Morumbis</TableCell>
-                                        <TableCell>Av Giovanni Gronchi</TableCell>
-                                        <TableCell>São Paulo</TableCell>
-                                        <TableCell>A, B, C, D, E</TableCell>
-                                        <TableCell>10/03/2025</TableCell>
-                                        <TableCell className="text-right">
-                                             <Button>
-                                                  <EllipsisVertical />
-                                             </Button>
-                                        </TableCell>
-                                   </TableRow>
+                                   {
+                                        locais?.map((local, idx) => {
+                                             return (
+                                                  <TableRow key={idx}>
+                                                       <TableCell>{local.name}</TableCell>
+                                                       <TableCell>{local.address}</TableCell>
+                                                       <TableCell>{local.city}</TableCell>
+                                                       <TableCell>{local.entrance}</TableCell>
+                                                       <TableCell>{local.id}</TableCell>
+                                                       <TableCell className="text-right">
+                                                            <Button>
+                                                                 <EllipsisVertical />
+                                                            </Button>
+                                                       </TableCell>
+                                                  </TableRow>
+                                             );
+                                        })
+                                   }
                               </TableBody>
                          </Table>
 
                          <Pagination className="">
                               <PaginationContent>
                                    <PaginationItem>
-                                        <PaginationPrevious href="#" />
+                                        <PaginationPrevious onClick={() => {
+                                             setPage(page - 1);
+                                        }} />
                                    </PaginationItem>
                                    <PaginationItem>
                                         <PaginationLink>
@@ -92,8 +145,10 @@ export default function Locais() {
                                    <PaginationItem>
                                         <PaginationEllipsis />
                                    </PaginationItem>
-                                   <PaginationItem>
-                                        <PaginationNext href="#" />
+                                   <PaginationItem >
+                                        <PaginationNext onClick={() => {
+                                             setPage(page + 1);
+                                        }} />
                                    </PaginationItem>
                               </PaginationContent>
                          </Pagination>
