@@ -21,8 +21,14 @@ export class AppController {
   }
 
   @Get('places/:page')
-  getPlacesPaginated(@Param('page') page: number): Promise<PlacesModel[]> {
-    return this.placesService.getPlacesPaginated(page, 10);
+  async getPlacesPaginated(
+    @Param('page') page: number,
+  ): Promise<{ places: PlacesModel[]; totalPages: number }> {
+    const result = await this.placesService.getPlacesPaginated(page, 10);
+    return {
+      places: result.places,
+      totalPages: result.totalPages,
+    };
   }
 
   @Post('places/')

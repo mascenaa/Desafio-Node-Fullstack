@@ -35,6 +35,7 @@ export default function Locais() {
 
      const [locais, setLocais] = useState<Local[]>([]);
      const [page, setPage] = useState(1);
+     const [totalPages, setTotalPages] = useState(0);
 
      console.log(locais);
 
@@ -48,7 +49,8 @@ export default function Locais() {
                })
                     .then((response) => response.json())
                     .then((data) => {
-                         setLocais(data);
+                         setLocais(data["places"]);
+                         setTotalPages(data["totalPages"]);
                     })
                     .catch((error) => {
                          console.error("Error:", error);
@@ -56,7 +58,7 @@ export default function Locais() {
           }
 
           getLocais();
-     }, []);
+     }, [page]);
 
      return (
           <section className="p-5 md:p-20">
@@ -133,25 +135,71 @@ export default function Locais() {
                          <Pagination className="">
                               <PaginationContent>
                                    <PaginationItem>
-                                        <PaginationPrevious onClick={() => {
-                                             setPage(page - 1);
-                                        }} />
+                                        <PaginationPrevious
+                                             className="hover:bg-[#4E4F5B] rounded-[4px] cursor-pointer"
+                                             onClick={() => {
+                                                  if (page > 1) setPage(page - 1);
+                                             }}
+                                        />
                                    </PaginationItem>
+                                   <PaginationItem className="flex">
+                                        {page > 3 && (
+                                             <>
+                                                  {/* Primeira página e reticências */}
+                                                  <PaginationItem
+                                                       className="hover:bg-[#4E4F5B] rounded-[4px] cursor-pointer"
+                                                  >
+                                                       <PaginationLink onClick={() => setPage(1)}>1</PaginationLink>
+                                                  </PaginationItem>
+                                                  {page > 4 && <PaginationEllipsis />}
+                                             </>
+                                        )}
+
+                                        {[...Array(5)].map((_, index) => {
+                                             const pageIndex = page - 2 + index;
+                                             if (pageIndex > 0 && pageIndex <= totalPages) {
+                                                  return (
+                                                       <PaginationItem
+                                                            key={pageIndex}
+                                                            className={`hover:bg-[#4E4F5B] 
+                                                                 rounded-[4px] 
+                                                                 cursor-pointer ${page === pageIndex ? "bg-[#4E4F5B] text-white" : ""
+                                                                 }`}
+                                                       >
+                                                            <PaginationLink onClick={() => setPage(pageIndex)}>
+                                                                 {pageIndex}
+                                                            </PaginationLink>
+                                                       </PaginationItem>
+                                                  );
+                                             }
+                                             return null;
+                                        })}
+
+                                        {page < totalPages - 2 && (
+                                             <>
+                                                  {page < totalPages - 3 && <PaginationEllipsis />}
+                                                  <PaginationItem
+                                                       className="hover:bg-[#4E4F5B] rounded-[4px] cursor-pointer"
+                                                  >
+                                                       <PaginationLink onClick={() => setPage(totalPages)}>
+                                                            {totalPages}
+                                                       </PaginationLink>
+                                                  </PaginationItem>
+                                             </>
+                                        )}
+                                   </PaginationItem>
+
                                    <PaginationItem>
-                                        <PaginationLink>
-                                             1
-                                        </PaginationLink>
-                                   </PaginationItem>
-                                   <PaginationItem>
-                                        <PaginationEllipsis />
-                                   </PaginationItem>
-                                   <PaginationItem >
-                                        <PaginationNext onClick={() => {
-                                             setPage(page + 1);
-                                        }} />
+                                        <PaginationNext
+                                             className="hover:bg-[#4E4F5B] rounded-[4px] cursor-pointer"
+                                             onClick={() => {
+                                                  if (page < totalPages) setPage(page + 1);
+                                             }}
+                                        />
                                    </PaginationItem>
                               </PaginationContent>
                          </Pagination>
+
                     </div>
                </div>
           </section>

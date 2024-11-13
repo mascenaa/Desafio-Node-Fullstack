@@ -13,10 +13,18 @@ export class PlacesService {
   async getPlacesPaginated(page: number, pageSize: number) {
     const skip = (page - 1) * pageSize;
     const take = pageSize;
-    return this.prisma.places.findMany({
-      skip,
-      take,
-    });
+    const [places, totalPlaces] = await Promise.all([
+      this.prisma.places.findMany({
+        skip,
+        take,
+      }),
+      this.prisma.places.count(),
+    ]);
+    const totalPages = Math.ceil(totalPlaces / pageSize);
+    return {
+      places,
+      totalPages,
+    };
   }
 
   async createPlaces(data: Prisma.PlacesCreateInput): Promise<Places> {
