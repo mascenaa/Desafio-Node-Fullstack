@@ -1,12 +1,32 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { AppService } from './app.service';
+import { PlacesService } from './local/local.service';
+import { Places as PlacesModel, Prisma } from '@prisma/client';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly placesService: PlacesService,
+  ) {}
 
   @Get()
   getHello(): string {
     return this.appService.getHello();
+  }
+
+  @Get('places/')
+  getPlaces(): string {
+    return 'List of places';
+  }
+
+  @Get('places/:page')
+  getPlacesPaginated(@Param('page') page: number): Promise<PlacesModel[]> {
+    return this.placesService.getPlacesPaginated(page, 10);
+  }
+
+  @Post('places/')
+  createPlaces(@Body() data: Prisma.PlacesCreateInput): Promise<PlacesModel> {
+    return this.placesService.createPlaces(data);
   }
 }

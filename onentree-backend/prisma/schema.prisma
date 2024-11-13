@@ -32,7 +32,7 @@ model Events {
   type  String
   date  DateTime
   hour  String
-  place Places   @relation(fields: [id], references: [id])
   email String
   phone String
+  place Places   @relation(fields: [id], references: [id])
 }
