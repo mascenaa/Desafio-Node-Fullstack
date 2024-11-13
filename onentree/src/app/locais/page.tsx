@@ -36,8 +36,8 @@ export default function Locais() {
      const [locais, setLocais] = useState<Local[]>([]);
      const [page, setPage] = useState(1);
      const [totalPages, setTotalPages] = useState(0);
+     const [totalLocais, setTotalLocais] = useState(0);
 
-     console.log(locais);
 
      useEffect(() => {
           function getLocais() {
@@ -51,6 +51,7 @@ export default function Locais() {
                     .then((data) => {
                          setLocais(data["places"]);
                          setTotalPages(data["totalPages"]);
+                         setTotalLocais(data["totalPlaces"]);
                     })
                     .catch((error) => {
                          console.error("Error:", error);
@@ -60,10 +61,22 @@ export default function Locais() {
           getLocais();
      }, [page]);
 
+     const [searchTerm, setSearchTerm] = useState("");
+
+     const filteredLocais = locais.filter((local) =>
+          local.name.toLowerCase().includes(searchTerm.toLowerCase())
+          || local.city.toLowerCase().includes(searchTerm.toLowerCase())
+          || local.address.toLowerCase().includes(searchTerm.toLowerCase())
+     );
+
+     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+          setSearchTerm(event.target.value);
+     };
+
      return (
           <section className="p-5 md:p-20">
                <div>
-                    <h1 className="text-2xl">Locais (0)</h1>
+                    <h1 className="text-2xl">Locais ({totalLocais})</h1>
                     <p>
                          Confira a lista de todos os locais cadastrados.
                     </p>
@@ -75,6 +88,7 @@ export default function Locais() {
                               <Search className="absolute left-2
                                w-5 h-5 text-[#6D99FB]" />
                               <Input
+                                   onChange={handleSearchChange}
                                    className="w-full border-none pl-10"
                                    placeholder="Pesquise por nome do local" />
                          </div>
@@ -112,10 +126,10 @@ export default function Locais() {
                               </TableHeader>
                               <TableBody>
                                    {
-                                        locais?.map((local, idx) => {
+                                        locais.length > 0 ? filteredLocais?.map((local, idx) => {
                                              return (
-                                                  <TableRow key={idx}>
-                                                       <TableCell>{local.name}</TableCell>
+                                                  <TableRow className={`${idx % 2 != 0 ? "bg-[#333B49]" : ""}`} key={idx}>
+                                                       <TableCell > {local.name}</TableCell>
                                                        <TableCell>{local.address}</TableCell>
                                                        <TableCell>{local.city}</TableCell>
                                                        <TableCell>{local.entrance}</TableCell>
@@ -127,7 +141,13 @@ export default function Locais() {
                                                        </TableCell>
                                                   </TableRow>
                                              );
-                                        })
+                                        }) : (
+                                             <TableRow>
+                                                  <TableCell colSpan={6} className="text-center">
+                                                       Nenhum local cadastrado.
+                                                  </TableCell>
+                                             </TableRow>
+                                        )
                                    }
                               </TableBody>
                          </Table>
@@ -142,52 +162,51 @@ export default function Locais() {
                                              }}
                                         />
                                    </PaginationItem>
-                                   <PaginationItem className="flex">
-                                        {page > 3 && (
-                                             <>
-                                                  {/* Primeira página e reticências */}
-                                                  <PaginationItem
-                                                       className="hover:bg-[#4E4F5B] rounded-[4px] cursor-pointer"
-                                                  >
-                                                       <PaginationLink onClick={() => setPage(1)}>1</PaginationLink>
-                                                  </PaginationItem>
-                                                  {page > 4 && <PaginationEllipsis />}
-                                             </>
-                                        )}
 
-                                        {[...Array(5)].map((_, index) => {
-                                             const pageIndex = page - 2 + index;
-                                             if (pageIndex > 0 && pageIndex <= totalPages) {
-                                                  return (
-                                                       <PaginationItem
-                                                            key={pageIndex}
-                                                            className={`hover:bg-[#4E4F5B] 
+                                   {page > 3 && (
+                                        <>
+                                             <PaginationItem
+                                                  className="hover:bg-[#4E4F5B] rounded-[4px] cursor-pointer"
+                                             >
+                                                  <PaginationLink onClick={() => setPage(1)}>1</PaginationLink>
+                                             </PaginationItem>
+                                             {page > 4 && <PaginationEllipsis />}
+                                        </>
+                                   )}
+
+                                   {[...Array(5)].map((_, index) => {
+                                        const pageIndex = page - 2 + index;
+                                        if (pageIndex > 0 && pageIndex <= totalPages) {
+                                             return (
+                                                  <PaginationItem
+                                                       key={pageIndex}
+                                                       className={`hover:bg-[#4E4F5B] 
                                                                  rounded-[4px] 
                                                                  cursor-pointer ${page === pageIndex ? "bg-[#4E4F5B] text-white" : ""
-                                                                 }`}
-                                                       >
-                                                            <PaginationLink onClick={() => setPage(pageIndex)}>
-                                                                 {pageIndex}
-                                                            </PaginationLink>
-                                                       </PaginationItem>
-                                                  );
-                                             }
-                                             return null;
-                                        })}
-
-                                        {page < totalPages - 2 && (
-                                             <>
-                                                  {page < totalPages - 3 && <PaginationEllipsis />}
-                                                  <PaginationItem
-                                                       className="hover:bg-[#4E4F5B] rounded-[4px] cursor-pointer"
+                                                            }`}
                                                   >
-                                                       <PaginationLink onClick={() => setPage(totalPages)}>
-                                                            {totalPages}
+                                                       <PaginationLink onClick={() => setPage(pageIndex)}>
+                                                            {pageIndex}
                                                        </PaginationLink>
                                                   </PaginationItem>
-                                             </>
-                                        )}
-                                   </PaginationItem>
+                                             );
+                                        }
+                                        return null;
+                                   })}
+
+                                   {page < totalPages - 2 && (
+                                        <>
+                                             {page < totalPages - 3 && <PaginationEllipsis />}
+                                             <PaginationItem
+                                                  className="hover:bg-[#4E4F5B] rounded-[4px] cursor-pointer"
+                                             >
+                                                  <PaginationLink onClick={() => setPage(totalPages)}>
+                                                       {totalPages}
+                                                  </PaginationLink>
+                                             </PaginationItem>
+                                        </>
+                                   )}
+
 
                                    <PaginationItem>
                                         <PaginationNext
@@ -201,7 +220,7 @@ export default function Locais() {
                          </Pagination>
 
                     </div>
-               </div>
-          </section>
+               </div >
+          </section >
      );
 }

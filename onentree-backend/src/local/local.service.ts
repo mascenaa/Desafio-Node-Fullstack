@@ -24,6 +24,7 @@ export class PlacesService {
     return {
       places,
       totalPages,
+      totalPlaces,
     };
   }
 
