@@ -37,6 +37,7 @@ export default function Locais() {
      const [page, setPage] = useState(1);
      const [totalPages, setTotalPages] = useState(0);
      const [totalLocais, setTotalLocais] = useState(0);
+     const [search, setSearch] = useState("");
 
 
      useEffect(() => {
@@ -61,16 +62,31 @@ export default function Locais() {
           getLocais();
      }, [page]);
 
-     const [searchTerm, setSearchTerm] = useState("");
 
-     const filteredLocais = locais.filter((local) =>
-          local.name.toLowerCase().includes(searchTerm.toLowerCase())
-          || local.city.toLowerCase().includes(searchTerm.toLowerCase())
-          || local.address.toLowerCase().includes(searchTerm.toLowerCase())
-     );
+     const [filtredLocais, setFiltredLocais] = useState<Local[]>([]);
 
      const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-          setSearchTerm(event.target.value);
+          setSearch(event.target.value);
+
+          fetch(`http://localhost:8080/places/search/${event.target.value}`, {
+               method: "GET",
+               headers: {
+                    "Content-Type": "application/json"
+               }
+          })
+               .then((response) => response.json())
+               .then((data) => {
+                    if (data && data.length > 0) {
+                         setFiltredLocais(data);
+                    }
+               })
+               .catch((error) => {
+                    console.error("Error:", error);
+                    setLocais([]);
+                    setPage(1);
+                    setTotalPages(0);
+                    setTotalLocais(0);
+               });
      };
 
      return (
@@ -126,7 +142,7 @@ export default function Locais() {
                               </TableHeader>
                               <TableBody>
                                    {
-                                        locais.length > 0 ? filteredLocais?.map((local, idx) => {
+                                        locais.length > 0 && search.length < 1 ? locais?.map((local, idx) => {
                                              return (
                                                   <TableRow className={`${idx % 2 != 0 ? "bg-[#333B49]" : ""}`} key={idx}>
                                                        <TableCell > {local.name}</TableCell>
@@ -141,13 +157,22 @@ export default function Locais() {
                                                        </TableCell>
                                                   </TableRow>
                                              );
-                                        }) : (
-                                             <TableRow>
-                                                  <TableCell colSpan={6} className="text-center">
-                                                       Nenhum local cadastrado.
-                                                  </TableCell>
-                                             </TableRow>
-                                        )
+                                        }) : filtredLocais.map((local, idx) => {
+                                             return (
+                                                  <TableRow className={`${idx % 2 != 0 ? "bg-[#333B49]" : ""}`} key={idx}>
+                                                       <TableCell > {local.name}</TableCell>
+                                                       <TableCell>{local.address}</TableCell>
+                                                       <TableCell>{local.city}</TableCell>
+                                                       <TableCell>{local.entrance}</TableCell>
+                                                       <TableCell>{local.id}</TableCell>
+                                                       <TableCell className="text-right">
+                                                            <Button>
+                                                                 <EllipsisVertical />
+                                                            </Button>
+                                                       </TableCell>
+                                                  </TableRow>
+                                             );
+                                        })
                                    }
                               </TableBody>
                          </Table>

@@ -28,6 +28,16 @@ export class PlacesService {
     };
   }
 
+  async searchBinaryPlaces(name: string) {
+    return this.prisma.places.findMany({
+      where: {
+        name: {
+          contains: name,
+        },
+      },
+    });
+  }
+
   async createPlaces(data: Prisma.PlacesCreateInput): Promise<Places> {
     return this.prisma.places.create({ data });
   }

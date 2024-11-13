@@ -34,6 +34,13 @@ export class AppController {
     };
   }
 
+  @Get('places/search/:name')
+  async searchBinaryPlaces(
+    @Param('name') name: string,
+  ): Promise<PlacesModel[]> {
+    return this.placesService.searchBinaryPlaces(name);
+  }
+
   @Post('places/')
   createPlaces(@Body() data: Prisma.PlacesCreateInput): Promise<PlacesModel> {
     return this.placesService.createPlaces(data);
